@@ -35,7 +35,7 @@ def GetTime(sec):
 #function to create and manage a progress bar
 def update_progress(progress, status):
   barLength = 25
-  status = status[0:20].ljust(20, " ")
+  status = status[:20].ljust(25, " ")
   if isinstance(progress, int):
       progress = float(progress)
   if not isinstance(progress, float):
@@ -48,9 +48,24 @@ def update_progress(progress, status):
       progress = 1
       status = "Done...\r\n"
   block = int(round(barLength*progress))
-  tTC = GetTime((len(words) - count) * avgTime) + " to finish"
+  avgTimeI = 0.0
+  if len(avgTime) > 0:
+    for avg in avgTime:
+      avgTimeI += avg
+    avgTimeI = avgTimeI / len(avgTime)
+  tTC = GetTime((len(words) - count) * avgTimeI) + " to finish"
   if debug:
-    avg = "W:" + str("%.3f" % avgWord) + ";D:" + str("%.3f" % avgDom)
+    avgWordI = 0.0
+    if len(avgWord) > 0:
+      for avg in avgWord:
+        avgWordI += avg
+      avgWordI = avgWordI / len(avgWord)
+    avgDomI = 0.0
+    if len(avgDom) > 0:
+      for avg in avgDom:
+        avgDomI += avg
+      avgDomI = avgDomI / len(avgDom)
+    avg = "W:" + str("%.3f" % avgWordI) + ";D:" + str("%.3f" % avgDomI)
     text = "\rPercent: [{0}] {1}% ({2}) [{3}] Doing: {4}".format("#"*block + "-"*(barLength-block), "%.3f" % (progress*100), tTC, avg, status)
   else:
     text = "\rPercent: [{0}] {1}% ({2}) Doing: {3}".format("#"*block + "-"*(barLength-block), "%.3f" % (progress*100), tTC, status)
@@ -58,9 +73,9 @@ def update_progress(progress, status):
   sys.stdout.flush()
 
 tOS = str(time.strftime("%Y-%m-%dT%H%M"))
-avgTime = 0.0
-avgWord = 0.0
-avgDom = 0.0
+avgTime = []
+avgWord = []
+avgDom = []
 count = 0.0
 goodWords = []
 
@@ -98,10 +113,7 @@ for word in words:
     data = simplejson.load(json)
 
     wordTime = time.time() - wordTime
-    if avgWord == 0:
-      avgWord = wordTime
-    else:
-      avgWord = (avgWord + wordTime) / 2
+    avgWord.append(wordTime)
 
     #If at least 1 definition was found on Wordnik
     if len(data) > 0:
@@ -124,10 +136,7 @@ for word in words:
       data = simplejson.load(json)
 
       domTime = time.time() - domTime
-      if avgDom == 0:
-        avgDom = domTime
-      else:
-        avgDom = (avgDom + domTime) / 2
+      avgDom.append(domTime)
 
       results = data["results"]
       domAvail = {
@@ -175,10 +184,7 @@ for word in words:
         f.write(Sword + "," + Stext.replace(",", "`") + "," + domAvailT + "\n")
 
         tOR = time.time() - tOR
-        if avgTime == 0:
-          avgTime = tOR
-        else:
-          avgTime = (avgTime + tOR) / 2
+        avgTime.append(tOR)
   #If the data from the website cannot be read (404, primarily)
   except urllib2.HTTPError as e:
     #Just skip it, no one cares in this case
