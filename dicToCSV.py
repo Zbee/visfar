@@ -1,7 +1,7 @@
-#simplejson is not standard (pip install simplejson)
+#$ pip install simplejson
 import urllib2, simplejson, sys, time, codecs, argparse
 
-#setup debug
+#setup debug mode
 parser = argparse.ArgumentParser(description='Convert a dictionary into a CSV with domain availability')
 parser.add_argument('--debug', help='if debug info should be shown', nargs='*')
 
@@ -17,6 +17,7 @@ def GetTime(sec):
   w = d*7
   s = ""
 
+  #get the number of weeks, days, hours, minutes to complete
   weeks = sec//w
   sec = sec - weeks*w
   if weeks > 0: s += str(int(weeks)) + " weeks, "
@@ -65,7 +66,7 @@ def update_progress(progress, status):
       for avg in avgDom:
         avgDomI += avg
       avgDomI = avgDomI / len(avgDom)
-    avg = "W:" + str("%.3f" % avgWordI) + ";D:" + str("%.3f" % avgDomI)
+    avg = "W:" + str("%.3f" % avgWordI) + " - " + str("%.3f" % wordTime) + ";D:" + str("%.3f" % avgDomI) + " - " + str("%.3f" % domTime)
     text = "\rPercent: [{0}] {1}% ({2}) [{3}] Doing: {4}".format("#"*block + "-"*(barLength-block), "%.3f" % (progress*100), tTC, avg, status)
   else:
     text = "\rPercent: [{0}] {1}% ({2}) Doing: {3}".format("#"*block + "-"*(barLength-block), "%.3f" % (progress*100), tTC, status)
@@ -75,7 +76,9 @@ def update_progress(progress, status):
 tOS = str(time.strftime("%Y-%m-%dT%H%M"))
 avgTime = []
 avgWord = []
+wordTime = 0.0
 avgDom = []
+domTime = 0.0
 count = 0.0
 goodWords = []
 
@@ -84,7 +87,7 @@ words = open("en_US.dic") #Uses Hunspell dic http://wordlist.aspell.net/dicts/
 words = words.read().split("\n")
 
 #Make the output file have column headers
-text_file = open("visfarOutput" + tOS + ".csv", "w")
+text_file = open("visfar" + tOS + ".csv", "w")
 text_file.write("word,definition,.com,.community,.company,.computer,.business,.center,.city,.enterprises,.host,.hosting,.limited,.net,.org,.solutions,.tech,.technology,.town,.co,.io,.compare,.corp,.inc,.ltd,\n")
 text_file.close()
 
@@ -179,7 +182,7 @@ for word in words:
       domAvailT = ""
       for (domain, availability) in domAvail.items():
         domAvailT += availability + ","
-      with open("visfarOutput" + tOS + ".csv", 'a') as f:
+      with open("visfar" + tOS + ".csv", 'a') as f:
         #Add the word, its definition, and its domain availability to the output
         f.write(Sword + "," + Stext.replace(",", "`") + "," + domAvailT + "\n")
 
